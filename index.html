@@ -1,0 +1,1308 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JLPT Vocabulary Desk</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6fbfa;
+      --panel: #ffffff;
+      --ink: #142321;
+      --muted: #61706d;
+      --line: #d8e5e1;
+      --accent: #0f766e;
+      --accent-strong: #0b5f59;
+      --accent-soft: #d9f3ef;
+      --danger: #991b1b;
+      --danger-soft: #fee2e2;
+      --shadow: 0 8px 26px rgba(20, 35, 33, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .app.sidebar-collapsed {
+      grid-template-columns: 1fr;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      padding: 24px 18px;
+      background: #eaf7f4;
+      border-right: 1px solid var(--line);
+      overflow: auto;
+    }
+
+    .app.sidebar-collapsed aside {
+      display: none;
+    }
+
+    .sidebar-toggle,
+    .sidebar-open {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 8px 11px;
+      color: var(--accent-strong);
+      background: var(--accent-soft);
+      font-weight: 800;
+    }
+
+    .sidebar-toggle {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .sidebar-open {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      box-shadow: var(--shadow);
+    }
+
+    .to-top {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 30;
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      color: white;
+      background: var(--accent);
+      box-shadow: var(--shadow);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .to-top.hidden {
+      display: none;
+    }
+
+    .app:not(.sidebar-collapsed) .sidebar-open {
+      display: none;
+    }
+
+    main {
+      padding: 28px;
+    }
+
+    .app.sidebar-collapsed main {
+      padding-left: 72px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: 28px;
+      line-height: 1.15;
+    }
+
+    h2 {
+      margin-bottom: 14px;
+      font-size: 21px;
+    }
+
+    .lede,
+    .muted,
+    .helper {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .helper {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .tabs {
+      display: grid;
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    .tab {
+      width: 100%;
+      padding: 12px 14px;
+      color: var(--ink);
+      background: transparent;
+      text-align: left;
+    }
+
+    .tab.active {
+      color: white;
+      background: var(--accent);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .stat,
+    .panel,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat {
+      padding: 16px;
+    }
+
+    .stat-button {
+      width: 100%;
+      padding: 16px;
+      color: inherit;
+      background: var(--panel);
+      text-align: left;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-button.active {
+      border-color: var(--accent);
+      outline: 2px solid var(--accent-soft);
+    }
+
+    .stat strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 28px;
+      color: var(--accent-strong);
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .panel {
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .filter-panel {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .filter-group {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfefd;
+    }
+
+    .filter-group h3 {
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+
+    .quiz-filter-panel {
+      grid-template-columns: 1fr;
+    }
+
+    .quiz-session-group {
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+
+    .quiz-session-group h3 {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .quiz-session-group .check-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .quiz-session-group .check-pill {
+      min-height: 56px;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 16px;
+      background: white;
+    }
+
+    .quiz-session-group .check-pill input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .quiz-session-group .check-pill:has(input:checked) {
+      color: white;
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .check-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .check-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .check-pill input {
+      margin: 0;
+    }
+
+    .toolbar input,
+    .toolbar select,
+    form input,
+    form select,
+    form textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 11px;
+      color: var(--ink);
+      background: white;
+    }
+
+    .toolbar input {
+      flex: 1 1 260px;
+    }
+
+    .toolbar select {
+      width: auto;
+      min-width: 132px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      min-height: 190px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .example-button {
+      flex: 0 0 auto;
+      min-height: 32px;
+      padding: 0 2px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .example-button:hover {
+      color: var(--accent-strong);
+      background: transparent;
+    }
+
+    .jp {
+      font-size: 25px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .reading {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .meaning {
+      font-weight: 650;
+    }
+
+    .example {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .example-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .example-list li {
+      padding-left: 2px;
+    }
+
+    .example-list strong {
+      display: block;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 26px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: var(--accent-strong);
+      background: var(--accent-soft);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .primary,
+    .secondary,
+    .danger {
+      min-height: 40px;
+      padding: 9px 12px;
+      font-weight: 700;
+    }
+
+    .primary {
+      color: white;
+      background: var(--accent);
+    }
+
+    .primary:hover {
+      background: var(--accent-strong);
+    }
+
+    .secondary {
+      color: var(--accent-strong);
+      background: var(--accent-soft);
+    }
+
+    .danger {
+      color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .form-grid label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .quiz-card {
+      display: grid;
+      gap: 14px;
+      max-width: 780px;
+    }
+
+    .quiz-start {
+      justify-self: start;
+      min-width: 160px;
+    }
+
+    .quiz-stage {
+      min-height: calc(100vh - 56px);
+      max-width: none;
+      place-content: center;
+      justify-items: center;
+      text-align: center;
+      padding-bottom: 120px;
+    }
+
+    .quiz-stage .question {
+      font-size: clamp(64px, 11vw, 150px);
+      line-height: 1;
+    }
+
+    .quiz-stage .answer {
+      width: min(760px, 100%);
+      border-left: 0;
+      font-size: 22px;
+      text-align: left;
+    }
+
+    .quiz-stage .card-actions {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      z-index: 20;
+      width: min(720px, calc(100vw - 32px));
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: var(--shadow);
+      justify-content: center;
+      flex-wrap: wrap;
+      transform: translateX(-50%);
+    }
+
+    .quiz-stage .card-actions button {
+      flex: 1 1 140px;
+    }
+
+    .app.quiz-fullscreen {
+      display: block;
+      min-height: 100vh;
+    }
+
+    .app.quiz-fullscreen aside,
+    .app.quiz-fullscreen .sidebar-open,
+    .app.quiz-fullscreen .to-top,
+    .app.quiz-fullscreen .stats,
+    .app.quiz-fullscreen .view:not(#quiz),
+    .app.quiz-fullscreen #quizSetup {
+      display: none;
+    }
+
+    .app.quiz-fullscreen main {
+      min-height: 100vh;
+      padding: 28px;
+    }
+
+    .app.quiz-fullscreen #quizStage {
+      display: grid;
+    }
+
+    .question {
+      font-size: 34px;
+      font-weight: 750;
+      line-height: 1.2;
+    }
+
+    .answer {
+      display: none;
+      padding: 14px;
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .answer.visible {
+      display: block;
+    }
+
+    .empty {
+      padding: 24px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        position: static;
+        height: auto;
+      }
+
+      main {
+        padding: 18px;
+      }
+
+      .app.sidebar-collapsed main {
+        padding-left: 18px;
+        padding-top: 68px;
+      }
+
+      .stats,
+      .filter-panel,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .quiz-session-group .check-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quiz-stage .question {
+        font-size: clamp(52px, 18vw, 96px);
+      }
+
+      .quiz-stage {
+        padding-bottom: 170px;
+      }
+
+      .quiz-stage .card-actions {
+        bottom: 12px;
+      }
+
+      .to-top {
+        right: 14px;
+        bottom: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <button id="openSidebar" class="sidebar-open" type="button" aria-label="Show menu">Menu</button>
+    <button id="toTop" class="to-top hidden" type="button" aria-label="Go to top">↑</button>
+    <aside>
+      <button id="hideSidebar" class="sidebar-toggle" type="button">Hide menu</button>
+      <h1>JLPT Vocabulary Desk</h1>
+      <p class="lede">Study each word as kanji, hiragana, meaning, and example.</p>
+      <nav class="tabs" aria-label="Study sections">
+        <button class="tab active" data-view="shinkanzen">Shinkanzen</button>
+        <button class="tab" data-view="kaishi">Kaishi 1.5k</button>
+        <button class="tab" data-view="quiz">Quick Quiz</button>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="stats" aria-label="Progress totals">
+        <div class="stat"><strong id="totalCount">0</strong><span>Total cards</span></div>
+        <div class="stat"><strong id="visibleCount">0</strong><span>Visible now</span></div>
+        <button id="shinkanzenLearnedToggle" class="stat stat-button" type="button" aria-pressed="false"><strong id="shinkanzenLearnedCount">0</strong><span>Shinkanzen learned</span></button>
+        <button id="kaishiLearnedToggle" class="stat stat-button" type="button" aria-pressed="false"><strong id="kaishiLearnedCount">0</strong><span>Kaishi learned</span></button>
+      </section>
+
+      <section id="shinkanzen" class="view">
+        <div class="panel">
+          <h2>Shinkanzen Deck</h2>
+          <div class="toolbar">
+            <input id="shinkanzenSearch" type="search" placeholder="Search Shinkanzen kanji, hiragana, meaning, or example">
+            <select id="shinkanzenLesson" aria-label="Filter Shinkanzen by lesson">
+              <option value="all">All lessons</option>
+            </select>
+            <select id="shinkanzenSort" aria-label="Sort Shinkanzen cards">
+              <option value="lesson">Lesson order</option>
+              <option value="kana">Reading A-Z</option>
+            </select>
+          </div>
+          <div id="shinkanzenGrid" class="grid"></div>
+          <div id="emptyShinkanzen" class="empty hidden">No Shinkanzen cards match that search yet.</div>
+        </div>
+      </section>
+
+      <section id="kaishi" class="view hidden">
+        <div class="panel">
+          <h2>Kaishi 1.5k Deck</h2>
+          <div class="toolbar">
+            <input id="kaishiSearch" type="search" placeholder="Search Kaishi kanji, hiragana, meaning, or example">
+            <select id="kaishiSort" aria-label="Sort Kaishi cards">
+              <option value="added">Deck order</option>
+              <option value="kana">Reading A-Z</option>
+            </select>
+          </div>
+          <div id="kaishiGrid" class="grid"></div>
+          <div id="emptyKaishi" class="empty hidden">No Kaishi cards match that search yet.</div>
+        </div>
+      </section>
+
+      <section id="quiz" class="view hidden">
+        <div id="quizSetup" class="panel quiz-card">
+          <h2>Quick Quiz</h2>
+          <p class="muted">Choose one session or combine sessions, then choose the lessons you want to drill.</p>
+          <div class="filter-panel quiz-filter-panel" aria-label="Quiz filters">
+            <div class="filter-group quiz-session-group">
+              <h3>Sessions</h3>
+              <div id="quizSessionChecks" class="check-grid"></div>
+            </div>
+            <div class="filter-group">
+              <h3>Lessons</h3>
+              <div id="quizLessonChecks" class="check-grid"></div>
+            </div>
+          </div>
+          <button id="startQuiz" class="primary quiz-start" type="button">Start quiz</button>
+        </div>
+
+        <div id="quizStage" class="panel quiz-card quiz-stage hidden">
+          <div id="quizMeta" class="tag">kanji</div>
+          <div id="quizQuestion" class="question">Press next to start.</div>
+          <div id="quizAnswer" class="answer"></div>
+          <div class="card-actions">
+            <button id="showAnswer" class="secondary">Show answer</button>
+            <button id="learnQuiz" class="secondary">Mark learned</button>
+            <button id="previousQuiz" class="secondary">Previous card</button>
+            <button id="nextQuiz" class="primary">Next card</button>
+            <button id="exitQuiz" class="secondary">Quit</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const learnedKey = "jlpt-vocab-desk-learned-v1";
+    const sidebarKey = "jlpt-vocab-desk-sidebar-collapsed";
+    const shinkanzenDeckUrl = "data/shinkanzen-n3.json";
+    const kaishiDeckUrl = "data/kaishi-15k.json";
+
+    let shinkanzenCards = [];
+    let kaishiCards = [];
+    let learned = new Set(loadJson(learnedKey, []));
+    let quizCard = null;
+    let quizRunning = false;
+    let quizHistory = [];
+    let quizHistoryIndex = -1;
+    let learnedOnly = false;
+    let learnedOnlySession = null;
+
+    const app = document.querySelector(".app");
+    const views = document.querySelectorAll(".view");
+    const tabs = document.querySelectorAll(".tab");
+    const shinkanzenSearch = document.getElementById("shinkanzenSearch");
+    const shinkanzenLesson = document.getElementById("shinkanzenLesson");
+    const shinkanzenSort = document.getElementById("shinkanzenSort");
+    const shinkanzenGrid = document.getElementById("shinkanzenGrid");
+    const emptyShinkanzen = document.getElementById("emptyShinkanzen");
+    const kaishiSearch = document.getElementById("kaishiSearch");
+    const kaishiSort = document.getElementById("kaishiSort");
+    const kaishiGrid = document.getElementById("kaishiGrid");
+    const emptyKaishi = document.getElementById("emptyKaishi");
+    const quizSetup = document.getElementById("quizSetup");
+    const quizStage = document.getElementById("quizStage");
+    const quizSessionChecks = document.getElementById("quizSessionChecks");
+    const quizLessonChecks = document.getElementById("quizLessonChecks");
+    const startQuizButton = document.getElementById("startQuiz");
+    const exitQuizButton = document.getElementById("exitQuiz");
+    const previousQuizButton = document.getElementById("previousQuiz");
+    const shinkanzenLearnedToggle = document.getElementById("shinkanzenLearnedToggle");
+    const kaishiLearnedToggle = document.getElementById("kaishiLearnedToggle");
+    const toTopButton = document.getElementById("toTop");
+    const hideSidebar = document.getElementById("hideSidebar");
+    const openSidebar = document.getElementById("openSidebar");
+
+    const sessions = [
+      { key: "shinkanzen", label: "Shinkanzen", cards: () => shinkanzenCards },
+      { key: "kaishi", label: "Kaishi 1.5k", cards: () => kaishiCards }
+    ];
+
+    function loadJson(key, fallback) {
+      try {
+        return JSON.parse(localStorage.getItem(key)) || fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function saveLearned() {
+      localStorage.setItem(learnedKey, JSON.stringify([...learned]));
+    }
+
+    function setSidebarCollapsed(collapsed) {
+      app.classList.toggle("sidebar-collapsed", collapsed);
+      localStorage.setItem(sidebarKey, JSON.stringify(collapsed));
+    }
+
+    function hasKanji(value) {
+      return /[\u3400-\u9fff]/.test(String(value || ""));
+    }
+
+    function toHiragana(value) {
+      return String(value || "")
+        .replace(/[\u30a1-\u30f6]/g, char => String.fromCharCode(char.charCodeAt(0) - 0x60))
+        .replace(/[??]/g, "")
+        .trim();
+    }
+
+    function cardReading(card) {
+      const savedReading = toHiragana(card.reading);
+      if (savedReading) return savedReading;
+      const word = String(card.japanese || "").trim();
+      if (!hasKanji(word)) return toHiragana(word);
+      return "hiragana needed";
+    }
+
+    function cleanStudyText(value) {
+      return String(value || "").replace(/\s+/g, " ").trim();
+    }
+
+    function cardMeaning(card) {
+      return cleanStudyText(card.meaning || "[meaning needed]");
+    }
+
+    function cardExample(card) {
+      return cleanStudyText(card.example || "") || "Add an example when you meet this in context.";
+    }
+
+    function englishBase(card) {
+      return cardMeaning(card)
+        .replace(/^to\s+/i, "")
+        .replace(/^する：to\s+/i, "")
+        .replace(/\s*\([^)]*\)/g, "")
+        .split(/[;,]/)[0]
+        .trim()
+        .toLowerCase() || "this word";
+    }
+
+    function isVerbCard(card) {
+      return /^to\s+/i.test(cardMeaning(card)) || /する$/.test(card.japanese) || /[うくぐすつぬぶむる]$/.test(card.japanese);
+    }
+
+    function isIAdjective(word) {
+      return /い$/.test(word) && word.length > 1;
+    }
+
+    function negativeIAdjective(word) {
+      if (word === "いい") return "よくない";
+      if (word === "かっこいい") return "かっこよくない";
+      return word.replace(/い$/, "くない");
+    }
+
+    function stableIndex(value, length) {
+      let total = 0;
+      for (const char of String(value || "")) total += char.charCodeAt(0);
+      return total % length;
+    }
+
+    function rotateExamples(examples, seed) {
+      const start = stableIndex(seed, examples.length);
+      return [...examples.slice(start), ...examples.slice(0, start)].slice(0, 3);
+    }
+
+    function verbPhrase(card) {
+      if (/^する：/i.test(cardMeaning(card)) && !/する$/.test(card.japanese)) return `${card.japanese}する`;
+      return card.japanese;
+    }
+
+    function generatedExamples(card) {
+      const word = card.japanese;
+      const meaning = englishBase(card);
+      const existing = [];
+      if (card.example && card.exampleTranslation) {
+        existing.push({ jp: card.example, en: card.exampleTranslation });
+      }
+      if (/^[ぁ-んー]+$/.test(word) && word.length <= 3) {
+        return rotateExamples([
+          { jp: `「${word}」は日常会話でよく使います。`, en: `"${word}" is often used in daily conversation.` },
+          { jp: `日本語の授業で「${word}」を練習しました。`, en: `We practiced "${word}" in Japanese class.` },
+          { jp: `この文では「${word}」が自然に使われています。`, en: `"${word}" is used naturally in this sentence.` },
+          { jp: `会話の中で「${word}」を聞きました。`, en: `I heard "${word}" in a conversation.` }
+        ], word);
+      }
+      if (isIAdjective(word)) {
+        return [...existing, ...rotateExamples([
+          { jp: `この店の雰囲気はとても${word}です。`, en: `The atmosphere of this shop is very ${meaning}.` },
+          { jp: `思ったより${word}ので、少し驚きました。`, en: `It was more ${meaning} than I expected, so I was a little surprised.` },
+          { jp: `今日はあまり${negativeIAdjective(word)}と思います。`, en: `I do not think it is very ${meaning} today.` },
+          { jp: `${word}ものを選んだほうがいいです。`, en: `It is better to choose something ${meaning}.` }
+        ], word)].slice(0, 3);
+      }
+      if (isVerbCard(card)) {
+        const phrase = verbPhrase(card);
+        return [...existing, ...rotateExamples([
+          { jp: `時間があるときに${phrase}ことがあります。`, en: `I sometimes ${meaning} when I have time.` },
+          { jp: `${phrase}前に、もう一度確認してください。`, en: `Please check one more time before you ${meaning}.` },
+          { jp: `必要なら、すぐに${phrase}ことができます。`, en: `If necessary, I can ${meaning} right away.` },
+          { jp: `${phrase}のは簡単ではありません。`, en: `${meaning} is not easy.` }
+        ], word)].slice(0, 3);
+      }
+      return [...existing, ...rotateExamples([
+        { jp: `最近、${word}について友だちと話しました。`, en: `Recently, I talked with a friend about ${meaning}.` },
+        { jp: `${word}についてもっと知りたいです。`, en: `I want to know more about ${meaning}.` },
+        { jp: `この場面では${word}が大切です。`, en: `${meaning} is important in this situation.` },
+        { jp: `ニュースで${word}という言葉を聞きました。`, en: `I heard the word "${word}" on the news.` },
+        { jp: `${word}の意味をノートに書きました。`, en: `I wrote the meaning of "${word}" in my notebook.` }
+      ], word)].slice(0, 3);
+    }
+
+    function allKnownCards() {
+      return [...shinkanzenCards, ...kaishiCards];
+    }
+
+    async function loadJsonDeck(url) {
+      try {
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) return [];
+        const cards = await response.json();
+        return cards.map(card => ({
+          ...card,
+          reading: cardReading(card),
+          meaning: cardMeaning(card),
+          example: card.example ? cardExample(card) : ""
+        }));
+      } catch {
+        return [];
+      }
+    }
+
+    async function loadDecks() {
+      const [shinkanzen, kaishi] = await Promise.all([
+        loadJsonDeck(shinkanzenDeckUrl),
+        loadJsonDeck(kaishiDeckUrl)
+      ]);
+      shinkanzenCards = shinkanzen;
+      kaishiCards = kaishi;
+    }
+
+    function setView(viewId) {
+      views.forEach(view => view.classList.toggle("hidden", view.id !== viewId));
+      tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.view === viewId));
+      if (viewId === "shinkanzen") renderShinkanzenDeck();
+      if (viewId === "kaishi") renderKaishiDeck();
+      if (viewId === "quiz") {
+        stopQuiz();
+        updateQuizLessonOptions();
+        updateStats(filteredQuizCards());
+      }
+    }
+
+    function checkPill(label, value, checked) {
+      const pill = document.createElement("label");
+      pill.className = "check-pill";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = value;
+      input.checked = checked;
+      pill.append(input, label);
+      return pill;
+    }
+
+    function selectedChecks(container) {
+      return new Set([...container.querySelectorAll('input[type="checkbox"]:checked')]
+        .map(input => input.value)
+        .filter(value => value !== "all"));
+    }
+
+    function normalizeAllCheckbox(container, changedCheckbox) {
+      if (changedCheckbox?.value === "all" && changedCheckbox.checked) {
+        container.querySelectorAll('input[type="checkbox"]').forEach(input => {
+          if (input.value !== "all") input.checked = false;
+        });
+      } else if (changedCheckbox?.value !== "all" && changedCheckbox?.checked) {
+        const allInput = container.querySelector('input[value="all"]');
+        if (allInput) allInput.checked = false;
+      }
+      if (!container.querySelector('input[type="checkbox"]:checked')) {
+        const allInput = container.querySelector('input[value="all"]');
+        if (allInput) allInput.checked = true;
+      }
+    }
+
+    function updateCheckOptions(container, values, selectedValues, allLabel) {
+      container.innerHTML = "";
+      container.appendChild(checkPill(allLabel, "all", selectedValues.size === 0));
+      for (const value of values) container.appendChild(checkPill(value, value, selectedValues.has(value)));
+    }
+
+    function updateSelectOptions(select, values, allLabel) {
+      const selected = select.value;
+      select.innerHTML = "";
+      const allOption = document.createElement("option");
+      allOption.value = "all";
+      allOption.textContent = allLabel;
+      select.appendChild(allOption);
+      for (const value of values) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      }
+      select.value = values.includes(selected) ? selected : "all";
+    }
+
+    function selectedQuizSessions() {
+      const checked = selectedChecks(quizSessionChecks);
+      if (!checked.size) return new Set(sessions.map(session => session.key));
+      return checked;
+    }
+
+    function updateStats(visibleCards) {
+      document.getElementById("totalCount").textContent = allKnownCards().length;
+      document.getElementById("visibleCount").textContent = visibleCards.length;
+      document.getElementById("shinkanzenLearnedCount").textContent = shinkanzenCards.filter(card => learned.has(card.id)).length;
+      document.getElementById("kaishiLearnedCount").textContent = kaishiCards.filter(card => learned.has(card.id)).length;
+      shinkanzenLearnedToggle.classList.toggle("active", learnedOnly && learnedOnlySession === "shinkanzen");
+      kaishiLearnedToggle.classList.toggle("active", learnedOnly && learnedOnlySession === "kaishi");
+      shinkanzenLearnedToggle.setAttribute("aria-pressed", String(learnedOnly && learnedOnlySession === "shinkanzen"));
+      kaishiLearnedToggle.setAttribute("aria-pressed", String(learnedOnly && learnedOnlySession === "kaishi"));
+    }
+
+    function normalizedText(card) {
+      return [card.japanese, cardReading(card), cardMeaning(card), cardExample(card)].join(" ").toLowerCase();
+    }
+
+    function cardSessionKey(card) {
+      if (String(card.id || "").startsWith("shinkanzen-")) return "shinkanzen";
+      if (String(card.id || "").startsWith("kaishi-")) return "kaishi";
+      return "";
+    }
+
+    function filteredVisibleCards() {
+      if (!document.getElementById("shinkanzen").classList.contains("hidden")) {
+        return filteredStandaloneCards(shinkanzenCards, shinkanzenSearch, shinkanzenLesson, shinkanzenSort);
+      }
+      if (!document.getElementById("kaishi").classList.contains("hidden")) {
+        return filteredStandaloneCards(kaishiCards, kaishiSearch, null, kaishiSort);
+      }
+      if (!document.getElementById("quiz").classList.contains("hidden")) {
+        return filteredQuizCards();
+      }
+      return [];
+    }
+
+    function filteredStandaloneCards(cards, searchElement, lessonElement, sortElement) {
+      const query = searchElement.value.trim().toLowerCase();
+      const lesson = lessonElement?.value || "all";
+      const sessionKey = cards === shinkanzenCards ? "shinkanzen" : "kaishi";
+      const filtered = cards.filter(card => {
+        const matchesQuery = !query || normalizedText(card).includes(query);
+        const matchesLesson = lesson === "all" || card.lesson === lesson;
+        const matchesLearned = !(learnedOnly && learnedOnlySession === sessionKey) || learned.has(card.id);
+        return matchesQuery && matchesLesson && matchesLearned;
+      });
+      const order = new Map(filtered.map((card, index) => [card.id, index]));
+      return filtered.sort((a, b) => {
+        if (sortElement.value === "kana") return cardReading(a).localeCompare(cardReading(b), "ja");
+        if (sortElement.value === "lesson") {
+          return (a.lesson || "").localeCompare(b.lesson || "", undefined, { numeric: true }) || order.get(a.id) - order.get(b.id);
+        }
+        return order.get(a.id) - order.get(b.id);
+      });
+    }
+
+    function renderStandaloneDeck(cards, grid, emptyElement, searchElement, lessonElement, sortElement, sectionId) {
+      if (lessonElement) {
+        const lessons = [...new Set(cards.map(card => card.lesson || "Unsorted lesson"))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        updateSelectOptions(lessonElement, lessons, "All lessons");
+      }
+      const visibleCards = filteredStandaloneCards(cards, searchElement, lessonElement, sortElement);
+      grid.innerHTML = "";
+      emptyElement.classList.toggle("hidden", visibleCards.length > 0);
+      for (const card of visibleCards) grid.appendChild(cardElement(card));
+      if (!document.getElementById(sectionId).classList.contains("hidden")) {
+        updateStats(visibleCards);
+      }
+    }
+
+    function renderShinkanzenDeck() {
+      renderStandaloneDeck(shinkanzenCards, shinkanzenGrid, emptyShinkanzen, shinkanzenSearch, shinkanzenLesson, shinkanzenSort, "shinkanzen");
+    }
+
+    function renderKaishiDeck() {
+      renderStandaloneDeck(kaishiCards, kaishiGrid, emptyKaishi, kaishiSearch, null, kaishiSort, "kaishi");
+    }
+
+    function renderAllDecks() {
+      renderShinkanzenDeck();
+      renderKaishiDeck();
+      updateQuizLessonOptions();
+    }
+
+    function cardElement(card) {
+      const article = document.createElement("article");
+      article.className = "card";
+      article.innerHTML = '<header><div><div class="jp"></div><div class="reading"></div></div><button class="example-button" type="button" aria-label="Show examples">...</button></header><div class="meaning"></div><div class="example hidden"></div><div class="card-actions"><button class="secondary learned-button" type="button"></button></div>';
+      article.querySelector(".jp").textContent = card.japanese;
+      article.querySelector(".reading").textContent = cardReading(card);
+      article.querySelector(".meaning").textContent = cardMeaning(card);
+      const exampleContainer = article.querySelector(".example");
+      const exampleButton = article.querySelector(".example-button");
+      exampleButton.addEventListener("click", () => {
+        const isHidden = exampleContainer.classList.toggle("hidden");
+        exampleButton.textContent = isHidden ? "..." : "Hide";
+        exampleButton.setAttribute("aria-label", isHidden ? "Show examples" : "Hide examples");
+        if (isHidden || exampleContainer.childElementCount) return;
+        const list = document.createElement("ol");
+        list.className = "example-list";
+        for (const example of generatedExamples(card)) {
+          const item = document.createElement("li");
+          const japanese = document.createElement("strong");
+          const translation = document.createElement("span");
+          japanese.textContent = example.jp;
+          translation.textContent = example.en;
+          item.append(japanese, translation);
+          list.appendChild(item);
+        }
+        exampleContainer.appendChild(list);
+      });
+      const learnedButton = article.querySelector(".learned-button");
+      learnedButton.textContent = learned.has(card.id) ? "Learned" : "Mark learned";
+      learnedButton.addEventListener("click", () => toggleLearned(card.id));
+      return article;
+    }
+
+    function toggleLearned(id) {
+      if (learned.has(id)) learned.delete(id);
+      else learned.add(id);
+      saveLearned();
+      renderAllDecks();
+      updateStats(filteredVisibleCards());
+      if (quizCard && quizCard.id === id) document.getElementById("learnQuiz").textContent = learned.has(id) ? "Learned" : "Mark learned";
+    }
+
+    function renderQuizSessionOptions() {
+      quizSessionChecks.innerHTML = "";
+      for (const session of sessions) quizSessionChecks.appendChild(checkPill(session.label, session.key, true));
+    }
+
+    function quizSourceCards() {
+      const selected = selectedQuizSessions();
+      return sessions.flatMap(session => selected.has(session.key) ? session.cards() : []);
+    }
+
+    function updateQuizLessonOptions() {
+      const selectedLessons = selectedChecks(quizLessonChecks);
+      const lessons = [...new Set(quizSourceCards().map(card => card.lesson || "Unsorted lesson"))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+      updateCheckOptions(quizLessonChecks, lessons, selectedLessons, "All lessons");
+    }
+
+    function filteredQuizCards() {
+      const lessons = selectedChecks(quizLessonChecks);
+      return quizSourceCards().filter(card => {
+        const matchesLesson = lessons.size === 0 || lessons.has(card.lesson || "Unsorted lesson");
+        const matchesLearned = !(learnedOnly && learnedOnlySession === cardSessionKey(card)) || learned.has(card.id);
+        return matchesLesson && matchesLearned;
+      });
+    }
+
+    function renderQuizCard(cards) {
+      if (!quizCard) return;
+      document.getElementById("quizMeta").textContent = cards.length + " cards / " + (quizCard.sourceName || quizCard.source) + " / " + (quizCard.lesson || "Unsorted lesson");
+      document.getElementById("quizQuestion").textContent = quizCard.japanese;
+      document.getElementById("quizAnswer").classList.remove("visible");
+      document.getElementById("quizAnswer").innerHTML = "";
+      document.getElementById("learnQuiz").textContent = learned.has(quizCard.id) ? "Learned" : "Mark learned";
+      previousQuizButton.disabled = quizHistoryIndex <= 0;
+      updateStats(cards);
+    }
+
+    function nextQuiz() {
+      const cards = filteredQuizCards();
+      if (!cards.length) {
+        quizCard = null;
+        document.getElementById("quizMeta").textContent = "0 cards";
+        document.getElementById("quizQuestion").textContent = "No cards match those quiz filters.";
+        document.getElementById("quizAnswer").classList.remove("visible");
+        document.getElementById("quizAnswer").innerHTML = "";
+        updateStats([]);
+        return;
+      }
+      if (quizHistoryIndex < quizHistory.length - 1) {
+        quizHistory = quizHistory.slice(0, quizHistoryIndex + 1);
+      }
+      quizCard = cards[Math.floor(Math.random() * cards.length)];
+      quizHistory.push(quizCard);
+      quizHistoryIndex = quizHistory.length - 1;
+      renderQuizCard(cards);
+    }
+
+    function previousQuiz() {
+      if (quizHistoryIndex <= 0) return;
+      quizHistoryIndex -= 1;
+      quizCard = quizHistory[quizHistoryIndex];
+      renderQuizCard(filteredQuizCards());
+    }
+
+    function startQuiz() {
+      quizRunning = true;
+      quizHistory = [];
+      quizHistoryIndex = -1;
+      quizSetup.classList.add("hidden");
+      quizStage.classList.remove("hidden");
+      app.classList.add("quiz-fullscreen");
+      nextQuiz();
+    }
+
+    function stopQuiz() {
+      quizRunning = false;
+      quizHistory = [];
+      quizHistoryIndex = -1;
+      app.classList.remove("quiz-fullscreen");
+      quizStage.classList.add("hidden");
+      quizSetup.classList.remove("hidden");
+      previousQuizButton.disabled = true;
+    }
+
+    function showQuizAnswer() {
+      if (!quizCard) nextQuiz();
+      if (!quizCard) return;
+      const answer = document.getElementById("quizAnswer");
+      answer.innerHTML = '<strong>' + escapeHtml(cardMeaning(quizCard)) + '</strong><br>' + escapeHtml(cardReading(quizCard)) + '<br><span>' + escapeHtml(cardExample(quizCard)) + '</span>';
+      answer.classList.add("visible");
+    }
+
+    function escapeHtml(value) {
+      return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+    }
+
+    function handleQuizSessionChange(event) {
+      if (!selectedChecks(quizSessionChecks).size && event.target) event.target.checked = true;
+      quizCard = null;
+      quizHistory = [];
+      quizHistoryIndex = -1;
+      updateQuizLessonOptions();
+      if (quizRunning) nextQuiz();
+      else updateStats(filteredQuizCards());
+    }
+
+    function handleQuizLessonChange(event) {
+      normalizeAllCheckbox(quizLessonChecks, event.target);
+      quizCard = null;
+      quizHistory = [];
+      quizHistoryIndex = -1;
+      if (quizRunning) nextQuiz();
+      else updateStats(filteredQuizCards());
+    }
+
+    function updateToTopButton() {
+      toTopButton.classList.toggle("hidden", window.scrollY < 360);
+    }
+
+    function toggleLearnedOnly(sessionKey) {
+      const sameFilter = learnedOnly && learnedOnlySession === sessionKey;
+      learnedOnly = !sameFilter;
+      learnedOnlySession = learnedOnly ? sessionKey : null;
+      quizCard = null;
+      quizHistory = [];
+      quizHistoryIndex = -1;
+      if (learnedOnly) setView(sessionKey);
+      renderAllDecks();
+      updateStats(filteredVisibleCards());
+      if (quizRunning) nextQuiz();
+    }
+
+    tabs.forEach(tab => tab.addEventListener("click", () => setView(tab.dataset.view)));
+    hideSidebar.addEventListener("click", () => setSidebarCollapsed(true));
+    openSidebar.addEventListener("click", () => setSidebarCollapsed(false));
+    toTopButton.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+    window.addEventListener("scroll", updateToTopButton, { passive: true });
+    shinkanzenSearch.addEventListener("input", renderShinkanzenDeck);
+    shinkanzenLesson.addEventListener("change", renderShinkanzenDeck);
+    shinkanzenSort.addEventListener("change", renderShinkanzenDeck);
+    kaishiSearch.addEventListener("input", renderKaishiDeck);
+    kaishiSort.addEventListener("change", renderKaishiDeck);
+    shinkanzenLearnedToggle.addEventListener("click", () => toggleLearnedOnly("shinkanzen"));
+    kaishiLearnedToggle.addEventListener("click", () => toggleLearnedOnly("kaishi"));
+    quizSessionChecks.addEventListener("change", handleQuizSessionChange);
+    quizLessonChecks.addEventListener("change", handleQuizLessonChange);
+    startQuizButton.addEventListener("click", startQuiz);
+    exitQuizButton.addEventListener("click", stopQuiz);
+    document.getElementById("showAnswer").addEventListener("click", showQuizAnswer);
+    previousQuizButton.addEventListener("click", previousQuiz);
+    document.getElementById("nextQuiz").addEventListener("click", nextQuiz);
+    document.getElementById("learnQuiz").addEventListener("click", () => { if (quizCard) toggleLearned(quizCard.id); });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && quizRunning) stopQuiz();
+      if (event.key === "ArrowLeft" && quizRunning) previousQuiz();
+      if (event.key === "ArrowRight" && quizRunning) nextQuiz();
+    });
+
+    setSidebarCollapsed(loadJson(sidebarKey, false));
+    updateToTopButton();
+    renderQuizSessionOptions();
+    loadDecks().finally(renderAllDecks);
+  </script>
+</body>
+</html>
