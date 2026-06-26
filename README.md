@@ -1,5 +1,7 @@
 # JLPT Vocabulary Desk
 
+Testing
+
 Browser app for studying the two included Anki vocabulary sessions:
 
 - Shinkanzen N3
